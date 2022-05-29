@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct _double_node
+{
+    int key; //데이터 값
+    struct _double_node *prev;  //이전
+    struct _double_node *next;  //다음
+
+} double_node;
+
+double_node *head,*tail;
+
+void init_dlist(void)
+{
+    head = (double_node*)malloc(sizeof(double_node));
+    tail = (double_node*)malloc(sizeof(double_node));
+    head->next = tail;
+    head->prev = head;
+    tail->next = tail;
+    tail->prev = head;
+
+}
+
+//k순서대로 오름차순 정렬 노드 만들기 ( ^ )
+double_node* insert_double_node_in_order_of_size(int k)
+{
+    double_node *s;  //before node
+    double_node *i = (double_node*)malloc(sizeof(double_node));  //new node
+    i->key = k;
+
+    /*i->prev=s;
+    i->next=s->next;
+    s->next->prev=i;
+    s->prev=i;*/
+
+    if(head->next == tail) //데이터가 하나도 없을 때
+    {
+        i->prev = head;
+        i->next = head->next; //i->next=tail
+        i->next->prev = i; //tail->prev=i
+        head->next = i;
+        //return i;
+    }
+    else if(head->next->key >= i->key) //제일 작은 값 들어옴
+    {
+        i->prev = head;
+        i->next = head->next;
+        i->next->prev = i;
+        head->next = i;
+    }
+    else  // 여기가 동작하지 않음
+    {
+        s=head;
+        while(s->next != tail && s->next->key < i->key)//새로들어온 노드가 현재 노드보다 큰 경우
+        {
+            s=s->next; //옆으로 이동
+        }
+        // 새로들어온 노드가 현재 노드 보다 작아지면
+        i->prev = s;
+        i->next = s->next;
+        i->next->prev = i;
+
+    }
+
+    return i; // 무엇을 리턴?
+}
+
+//key==k 인 노드 찾아서 반환 ( o )
+double_node *find_double_node(int k)
+{
+    double_node *s = head;
+
+    while(s->next !=tail)
+    {
+        s = s->next;
+        if( s->key == k)
+            return s;
+    }
+    return tail;
+}
+
+// t 노드 전에 key==k 인 노드 삽입 ( o )
+double_node *insert_double_node_ptr(int k, double_node *t)
+{
+    double_node *i = (double_node*)malloc(sizeof(double_node)); // key==k 인 노드 동적할당
+
+    i->key = k;
+    i->prev = t->prev;
+    i->next = t;
+    t->prev = i;
+    i->prev->next = i;
+
+    return i;
+}
+
+// p노드 삭제 성공 1, 실패 0 ( o )
+int delete_double_node_ptr(double_node *p)
+{
+    if(p == head || p == tail)
+        return 0;
+
+    p->next->prev = p->prev;
+    p->prev->next = p->next;
+    free(p);
+
+    return 1;
+}
+
+// key == t 노드 전에 key == k 노드 삽입 ( ^ )
+double_node *insert_double_node(int k, int t)
+{
+    double_node *s;
+    double_node *i = NULL;
+    s =  find_double_node(t);
+    i = (double_node*)malloc(sizeof(double_node));
+
+    if(s == head || s == tail)
+        return tail;
+
+    i->key = k;
+    i->prev = s->prev;
+    i->next = s;
+    s->prev = i;
+    i->prev->next = i;
+
+    return i;
+}
+
+// key == k인 노드 삭제 성공 1, 실패 0 ( o )
+int delete_double_node(int k)
+{
+    double_node *s;
+    s= find_double_node(k);
+
+    if(s == head || s == tail)
+        return 0;
+
+    s->next->prev = s->prev;
+    s->prev->next = s->next;
+    free(s);
+
+    return 1;
+
+}
+
+// 전체 노드 출력 ( o )
+void print_all(double_node *p)
+{
+   // double_node *p
+    while(p!=tail){
+        printf(" %d ",p->key);
+        p=p->next;
+    }
+    printf("\n");
+}
+
+// 전체 노드 삭제 ( o )
+void delete_all_double_nodes(void)
+{
+    double_node *s ;
+    while(s)
+    {
+        s=head;
+        head=s->next;
+        free(s);
+
+    }
+}
+
+int main()
+{
+    double_node *t;
+    init_dlist();
+
+//insert_double_node_order
+    insert_double_node_in_order_of_size(10);
+    insert_double_node_in_order_of_size(7);
+    insert_double_node_in_order_of_size(6);
+    insert_double_node_in_order_of_size(3);
+    insert_double_node_in_order_of_size(1);
+    insert_double_node_in_order_of_size(5);
+    insert_double_node_in_order_of_size(8);
+
+    printf("\n Inital Linked list is\n");
+    print_all(head->next);
+
+//find_double_node
+    printf("\n Finding 2 is %ssuccessful", find_double_node(2) == tail ? "un":"");
+
+    t = find_double_node(7);
+    printf("\n Finding 7 is %ssuccessful", t == tail ? "un":"");
+    printf("\n");
+
+//insert_double_node_ptr
+    printf("\n Inserting 5 before 7 \n");
+    insert_double_node_ptr(5,t);
+    print_all(head->next);
+
+//delete_double_node_ptr
+    t= find_double_node(1);
+    printf("\n Deleting 1 \n");
+    delete_double_node_ptr(t);
+    print_all(head->next);
+
+//insert_double_node
+    printf("\n Inserting node 2 before 7 \n"); // 10은 안되고 7은 되지?
+    if( insert_double_node(2,7) != tail )
+        print_all(head->next);
+    else
+        printf("존재하지 않는 node");
+
+//delete_double_node
+    printf("\n Deleting node 2 \n");
+    if(!delete_double_node(2))
+        printf("\n deleting 2 is unsuccessful");
+    print_all(head->next);
+
+    printf("\n Deleting node 3 \n");
+    delete_double_node(3);
+    print_all(head->next);
+
+//insert_double_node_ptr_first
+    printf("\n Inserting 15 at first \n");
+    insert_double_node_ptr(15,head->next);
+    print_all(head->next);
+
+//delete_all
+    printf("\n Deleting all node \n");
+    delete_all_double_nodes();
+    print_all(head->next);
+
+    return 0;
+}
